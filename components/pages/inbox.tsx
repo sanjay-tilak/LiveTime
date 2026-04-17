@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Calendar, Bell, Search, Send, Paperclip, Star, Archive, MoreHorizontal, Check, CheckCheck, Filter } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -24,7 +24,7 @@ interface Message {
   starred: boolean
   status: "new" | "replied" | "accepted" | "declined"
   partnershipType: string
-  thread: ThreadMessage[]
+  thread?: ThreadMessage[]
 }
 
 interface ThreadMessage {
@@ -36,234 +36,6 @@ interface ThreadMessage {
   timestamp: string
   isOwn: boolean
 }
-
-// ─── Mock Data ───────────────────────────────────────────────────────────────
-
-const mockMessages: Message[] = [
-  {
-    id: "1",
-    sender: "Celsius Energy",
-    senderRole: "Brand Partnership Manager",
-    senderInitials: "CE",
-    senderColor: "bg-orange-500",
-    subject: "Partnership Opportunity — Campus Hydration Stations",
-    preview: "Hi there! We'd love to explore a co-branded hydration station activation at your upcoming events…",
-    fullMessage:
-      "Hi there!\n\nWe'd love to explore a co-branded hydration station activation at your upcoming campus events. Celsius has been expanding our college presence and your brand's audience aligns perfectly with our target demographic.\n\nWe're proposing a 3-month partnership that would include:\n• Branded hydration stations at 5+ events\n• Co-branded social media content (3 posts/month)\n• Product sampling for event attendees\n• Shared analytics dashboard\n\nOur budget for this activation is $15,000 and we'd love to discuss revenue sharing models that work for both parties.\n\nWould you be available for a call this week to discuss further?\n\nBest regards,\nSamantha Chen\nBrand Partnership Manager, Celsius Energy",
-    timestamp: "2:34 PM",
-    date: "Today",
-    read: false,
-    starred: true,
-    status: "new",
-    partnershipType: "Sponsorship",
-    thread: [
-      {
-        id: "1a",
-        sender: "Celsius Energy",
-        senderInitials: "CE",
-        senderColor: "bg-orange-500",
-        content:
-          "Hi there!\n\nWe'd love to explore a co-branded hydration station activation at your upcoming campus events. Celsius has been expanding our college presence and your brand's audience aligns perfectly with our target demographic.\n\nWe're proposing a 3-month partnership that would include:\n• Branded hydration stations at 5+ events\n• Co-branded social media content (3 posts/month)\n• Product sampling for event attendees\n• Shared analytics dashboard\n\nOur budget for this activation is $15,000 and we'd love to discuss revenue sharing models that work for both parties.\n\nWould you be available for a call this week to discuss further?\n\nBest regards,\nSamantha Chen\nBrand Partnership Manager, Celsius Energy",
-        timestamp: "2:34 PM",
-        isOwn: false,
-      },
-    ],
-  },
-  {
-    id: "2",
-    sender: "Nike Campus",
-    senderRole: "University Partnerships Lead",
-    senderInitials: "NK",
-    senderColor: "bg-gray-900",
-    subject: "Nike x LiveTime — Athletic Event Collab",
-    preview: "We've been following your athletic event series and would love to partner on the upcoming…",
-    fullMessage:
-      "Hello!\n\nWe've been following your athletic event series and would love to partner on the upcoming Run & Refuel event. Nike Campus is looking to expand our presence in experiential campus activations.\n\nHere's what we have in mind:\n• Official footwear sponsor for the Run & Refuel series\n• Nike-branded finish line experience\n• Limited-edition event merchandise collaboration\n• Social media takeover during event days\n\nWe'd also love to offer exclusive discounts for event participants through the Nike app.\n\nLet me know if this sounds interesting — happy to set up a meeting!\n\nCheers,\nMarcus Williams\nUniversity Partnerships Lead, Nike",
-    timestamp: "11:20 AM",
-    date: "Today",
-    read: false,
-    starred: false,
-    status: "new",
-    partnershipType: "Co-branding",
-    thread: [
-      {
-        id: "2a",
-        sender: "Nike Campus",
-        senderInitials: "NK",
-        senderColor: "bg-gray-900",
-        content:
-          "Hello!\n\nWe've been following your athletic event series and would love to partner on the upcoming Run & Refuel event. Nike Campus is looking to expand our presence in experiential campus activations.\n\nHere's what we have in mind:\n• Official footwear sponsor for the Run & Refuel series\n• Nike-branded finish line experience\n• Limited-edition event merchandise collaboration\n• Social media takeover during event days\n\nWe'd also love to offer exclusive discounts for event participants through the Nike app.\n\nLet me know if this sounds interesting — happy to set up a meeting!\n\nCheers,\nMarcus Williams\nUniversity Partnerships Lead, Nike",
-        timestamp: "11:20 AM",
-        isOwn: false,
-      },
-    ],
-  },
-  {
-    id: "3",
-    sender: "Spotify for Brands",
-    senderRole: "Campus Activations Coordinator",
-    senderInitials: "SP",
-    senderColor: "bg-green-600",
-    subject: "Music-Powered Events — Let's Collaborate!",
-    preview: "We're launching a new campus playlist partnership program and think your events would be the perfect fit…",
-    fullMessage:
-      "Hey there!\n\nWe're launching a new campus playlist partnership program and think your events would be the perfect fit. Imagine every event powered by curated Spotify playlists with real-time audience voting.\n\nOur proposal includes:\n• Custom event playlists curated by Spotify editors\n• Interactive listening stations with Premium trials\n• Spotify-branded photo ops & shared content\n• Data insights on music engagement at your events\n\nThis is a pilot program so we're offering this at no cost for the first 3 events, with the option to extend into a paid partnership.\n\nWould love to chat!\n\nBest,\nAlexa Rivera\nCampus Activations, Spotify",
-    timestamp: "Yesterday",
-    date: "Apr 9",
-    read: true,
-    starred: true,
-    status: "replied",
-    partnershipType: "Activation",
-    thread: [
-      {
-        id: "3a",
-        sender: "Spotify for Brands",
-        senderInitials: "SP",
-        senderColor: "bg-green-600",
-        content:
-          "Hey there!\n\nWe're launching a new campus playlist partnership program and think your events would be the perfect fit. Imagine every event powered by curated Spotify playlists with real-time audience voting.\n\nOur proposal includes:\n• Custom event playlists curated by Spotify editors\n• Interactive listening stations with Premium trials\n• Spotify-branded photo ops & shared content\n• Data insights on music engagement at your events\n\nThis is a pilot program so we're offering this at no cost for the first 3 events, with the option to extend into a paid partnership.\n\nWould love to chat!\n\nBest,\nAlexa Rivera\nCampus Activations, Spotify",
-        timestamp: "Apr 9, 3:15 PM",
-        isOwn: false,
-      },
-      {
-        id: "3b",
-        sender: "You",
-        senderInitials: "B",
-        senderColor: "bg-pink-500",
-        content:
-          "Hi Alexa,\n\nThanks so much for reaching out! This sounds like an incredible opportunity. We'd love to explore this further — the real-time voting feature sounds especially engaging for our audience.\n\nCould we schedule a call for next Tuesday?\n\nBest,\nAdmin",
-        timestamp: "Apr 9, 5:42 PM",
-        isOwn: true,
-      },
-    ],
-  },
-  {
-    id: "4",
-    sender: "Chick-fil-A University",
-    senderRole: "Event Catering Partnerships",
-    senderInitials: "CF",
-    senderColor: "bg-red-600",
-    subject: "Catering Partnership for Spring Events",
-    preview: "We'd love to be the exclusive food partner for your spring semester events…",
-    fullMessage:
-      "Good morning!\n\nWe'd love to be the exclusive food partner for your spring semester events. Chick-fil-A University has a dedicated campus events catering program with flexible menus.\n\nOur partnership package includes:\n• Catering for up to 10 events per semester\n• Custom branded food packaging\n• Student meal vouchers for event promotion\n• Social media cross-promotion\n\nWe recently partnered with 12 other campus organizations with great results — average event satisfaction rating of 4.8/5.\n\nLet's connect!\n\nWarm regards,\nDavid Park\nCampus Events, Chick-fil-A",
-    timestamp: "Apr 8",
-    date: "Apr 8",
-    read: true,
-    starred: false,
-    status: "accepted",
-    partnershipType: "Catering",
-    thread: [
-      {
-        id: "4a",
-        sender: "Chick-fil-A University",
-        senderInitials: "CF",
-        senderColor: "bg-red-600",
-        content:
-          "Good morning!\n\nWe'd love to be the exclusive food partner for your spring semester events. Chick-fil-A University has a dedicated campus events catering program with flexible menus.\n\nOur partnership package includes:\n• Catering for up to 10 events per semester\n• Custom branded food packaging\n• Student meal vouchers for event promotion\n• Social media cross-promotion\n\nWe recently partnered with 12 other campus organizations with great results — average event satisfaction rating of 4.8/5.\n\nLet's connect!\n\nWarm regards,\nDavid Park\nCampus Events, Chick-fil-A",
-        timestamp: "Apr 8, 9:00 AM",
-        isOwn: false,
-      },
-      {
-        id: "4b",
-        sender: "You",
-        senderInitials: "B",
-        senderColor: "bg-pink-500",
-        content: "Hi David,\n\nWe'd love to move forward with this! Let's finalize the details for our Taste of the Tropics event first.\n\nBest,\nAdmin",
-        timestamp: "Apr 8, 2:30 PM",
-        isOwn: true,
-      },
-      {
-        id: "4c",
-        sender: "Chick-fil-A University",
-        senderInitials: "CF",
-        senderColor: "bg-red-600",
-        content:
-          "That's wonderful news! I'll send over the catering proposal for Taste of the Tropics by end of day tomorrow. Looking forward to working together!\n\nBest,\nDavid",
-        timestamp: "Apr 8, 3:15 PM",
-        isOwn: false,
-      },
-    ],
-  },
-  {
-    id: "5",
-    sender: "Adobe Creative Campus",
-    senderRole: "Student Programs Manager",
-    senderInitials: "AD",
-    senderColor: "bg-red-500",
-    subject: "Creative Workshop Series — Adobe x LiveTime",
-    preview: "Adobe would love to sponsor a creative workshop series at your upcoming career-focused events…",
-    fullMessage:
-      "Hi!\n\nAdobe would love to sponsor a creative workshop series at your upcoming career-focused events. We're offering hands-on sessions with Adobe Creative Suite, led by Adobe-certified instructors.\n\nPartnership highlights:\n• 4 workshops per semester (Design, Video, Social Media, Portfolio)\n• Free Adobe Creative Cloud licenses for attendees (1 year)\n• Adobe-branded event materials\n• Certificate of completion for participants\n\nThis program has been incredibly popular at other universities, with an average of 85% attendance.\n\nHappy to share more details!\n\nBest,\nJordan Lee\nStudent Programs, Adobe",
-    timestamp: "Apr 7",
-    date: "Apr 7",
-    read: true,
-    starred: false,
-    status: "declined",
-    partnershipType: "Workshop",
-    thread: [
-      {
-        id: "5a",
-        sender: "Adobe Creative Campus",
-        senderInitials: "AD",
-        senderColor: "bg-red-500",
-        content:
-          "Hi!\n\nAdobe would love to sponsor a creative workshop series at your upcoming career-focused events. We're offering hands-on sessions with Adobe Creative Suite, led by Adobe-certified instructors.\n\nPartnership highlights:\n• 4 workshops per semester (Design, Video, Social Media, Portfolio)\n• Free Adobe Creative Cloud licenses for attendees (1 year)\n• Adobe-branded event materials\n• Certificate of completion for participants\n\nThis program has been incredibly popular at other universities, with an average of 85% attendance.\n\nHappy to share more details!\n\nBest,\nJordan Lee\nStudent Programs, Adobe",
-        timestamp: "Apr 7, 10:00 AM",
-        isOwn: false,
-      },
-      {
-        id: "5b",
-        sender: "You",
-        senderInitials: "B",
-        senderColor: "bg-pink-500",
-        content:
-          "Hi Jordan,\n\nThank you for the generous offer! Unfortunately, we've already committed to a similar workshop partnership for this semester. We'd love to revisit this for the fall.\n\nBest,\nAdmin",
-        timestamp: "Apr 7, 4:00 PM",
-        isOwn: true,
-      },
-    ],
-  },
-  {
-    id: "6",
-    sender: "Red Bull Campus",
-    senderRole: "Student Brand Manager",
-    senderInitials: "RB",
-    senderColor: "bg-blue-700",
-    subject: "Energy for Your Next Big Event 🚀",
-    preview: "Red Bull wants to fuel your next big campus event! We have a student activation budget ready to deploy…",
-    fullMessage:
-      "Hey!\n\nRed Bull wants to fuel your next big campus event! We have a dedicated student activation budget and we think your events are the perfect fit.\n\nWhat we're offering:\n• Red Bull sampling and branded bar at events\n• DJ / music performance sponsorship\n• Red Bull Wings Team on-site activation\n• Content creation with Red Bull media team\n• Cash sponsorship: $5,000–$10,000 per event\n\nWe've activated at over 200 campus events this year and our brand ambassadors love getting involved.\n\nLet's make something epic happen!\n\nRyan Torres\nStudent Brand Manager, Red Bull",
-    timestamp: "Apr 5",
-    date: "Apr 5",
-    read: true,
-    starred: true,
-    status: "replied",
-    partnershipType: "Sponsorship",
-    thread: [
-      {
-        id: "6a",
-        sender: "Red Bull Campus",
-        senderInitials: "RB",
-        senderColor: "bg-blue-700",
-        content:
-          "Hey!\n\nRed Bull wants to fuel your next big campus event! We have a dedicated student activation budget and we think your events are the perfect fit.\n\nWhat we're offering:\n• Red Bull sampling and branded bar at events\n• DJ / music performance sponsorship\n• Red Bull Wings Team on-site activation\n• Content creation with Red Bull media team\n• Cash sponsorship: $5,000–$10,000 per event\n\nWe've activated at over 200 campus events this year and our brand ambassadors love getting involved.\n\nLet's make something epic happen!\n\nRyan Torres\nStudent Brand Manager, Red Bull",
-        timestamp: "Apr 5, 1:00 PM",
-        isOwn: false,
-      },
-      {
-        id: "6b",
-        sender: "You",
-        senderInitials: "B",
-        senderColor: "bg-pink-500",
-        content:
-          "Hi Ryan,\n\nThis sounds amazing! We have our Midnight Munchies Mixer coming up and I think Red Bull would be a perfect fit. Can we chat about the $10K sponsorship tier?\n\nBest,\nAdmin",
-        timestamp: "Apr 5, 5:00 PM",
-        isOwn: true,
-      },
-    ],
-  },
-]
 
 // ─── Status Config ───────────────────────────────────────────────────────────
 
@@ -281,11 +53,47 @@ type FilterType = "all" | "unread" | "starred" | "new" | "replied" | "accepted" 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function Inbox() {
-  const [selectedId, setSelectedId] = useState<string>(mockMessages[0].id)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [replyText, setReplyText] = useState("")
   const [activeFilter, setActiveFilter] = useState<FilterType>("all")
-  const [messages, setMessages] = useState<Message[]>(mockMessages)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Fetch all messages on initial load
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/api/inbox/messages")
+        const data = await res.json()
+        setMessages(data)
+        if (data.length > 0) {
+          setSelectedId(data[0].id)
+        }
+      } catch (e) {
+        console.error("Failed to fetch messages:", e)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchMessages()
+  }, [])
+
+  // Fetch message detail (thread) when a message is selected
+  useEffect(() => {
+    if (!selectedId) return
+    const fetchDetail = async () => {
+      try {
+        const res = await fetch(`http://localhost:8000/api/inbox/messages/${selectedId}`)
+        const data = await res.json()
+        setSelectedMessage(data)
+      } catch (e) {
+        console.error("Failed to fetch message detail:", e)
+      }
+    }
+    fetchDetail()
+  }, [selectedId])
 
   const filteredMessages = useMemo(() => {
     let filtered = messages
@@ -320,38 +128,75 @@ export function Inbox() {
     return filtered
   }, [messages, activeFilter, searchQuery])
 
-  const selectedMessage = messages.find((m) => m.id === selectedId)
-
-  const handleSelect = (id: string) => {
+  const handleSelect = async (id: string) => {
     setSelectedId(id)
-    // Mark as read
-    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, read: true } : m)))
-  }
 
-  const toggleStar = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, starred: !m.starred } : m)))
-  }
-
-  const handleSendReply = () => {
-    if (!replyText.trim() || !selectedMessage) return
-    const newThreadMessage: ThreadMessage = {
-      id: `${selectedMessage.id}-${Date.now()}`,
-      sender: "You",
-      senderInitials: "B",
-      senderColor: "bg-pink-500",
-      content: replyText,
-      timestamp: "Just now",
-      isOwn: true,
+    // Check if it's already read locally to avoid unnecessary API calls
+    const msg = messages.find((m) => m.id === id)
+    if (msg && !msg.read) {
+      setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, read: true } : m)))
+      try {
+        await fetch(`http://localhost:8000/api/inbox/messages/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ read: true }),
+        })
+      } catch (e) {
+        console.error(e)
+      }
     }
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === selectedMessage.id
-          ? { ...m, status: "replied" as const, thread: [...m.thread, newThreadMessage] }
-          : m
+  }
+
+  const toggleStar = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const msg = messages.find((m) => m.id === id) || (selectedMessage?.id === id ? selectedMessage : null)
+    if (!msg) return
+    const newStarred = !msg.starred
+
+    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, starred: newStarred } : m)))
+    if (selectedMessage?.id === id) {
+      setSelectedMessage({ ...selectedMessage, starred: newStarred })
+    }
+
+    try {
+      await fetch(`http://localhost:8000/api/inbox/messages/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ starred: newStarred }),
+      })
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const handleSendReply = async () => {
+    if (!replyText.trim() || !selectedMessage) return
+    try {
+      const res = await fetch(`http://localhost:8000/api/inbox/messages/${selectedMessage.id}/reply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: replyText,
+          sender: "You",
+          senderInitials: "B",
+          senderColor: "bg-pink-500",
+        }),
+      })
+      const newThreadMessage = await res.json()
+
+      setSelectedMessage({
+        ...selectedMessage,
+        status: "replied",
+        thread: [...(selectedMessage.thread || []), newThreadMessage],
+      })
+
+      setMessages((prev) =>
+        prev.map((m) => (m.id === selectedMessage.id ? { ...m, status: "replied" as const } : m))
       )
-    )
-    setReplyText("")
+      setReplyText("")
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const unreadCount = messages.filter((m) => !m.read).length
@@ -445,7 +290,11 @@ export function Inbox() {
 
           {/* Messages List */}
           <div className="flex-1 overflow-y-auto">
-            {filteredMessages.length === 0 ? (
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm px-6">
+                <p className="font-medium">Loading messages...</p>
+              </div>
+            ) : filteredMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm px-6">
                 <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
                   <Archive className="w-5 h-5 text-slate-400" />
@@ -463,9 +312,7 @@ export function Inbox() {
                     key={msg.id}
                     onClick={() => handleSelect(msg.id)}
                     className={`w-full text-left px-5 py-4 border-b border-slate-100 transition-all group relative ${
-                      isSelected
-                        ? "bg-pink-50/70"
-                        : "hover:bg-slate-50"
+                      isSelected ? "bg-pink-50/70" : "hover:bg-slate-50"
                     }`}
                   >
                     {/* Selection indicator */}
@@ -578,7 +425,7 @@ export function Inbox() {
 
             {/* Thread */}
             <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6 bg-slate-50/50">
-              {selectedMessage.thread.map((msg, index) => (
+              {(selectedMessage.thread || []).map((msg, index) => (
                 <div
                   key={msg.id}
                   className={`flex gap-3 ${msg.isOwn ? "flex-row-reverse" : ""}`}
@@ -656,11 +503,22 @@ export function Inbox() {
           /* Empty state */
           <div className="flex-1 flex items-center justify-center bg-slate-50/50">
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                <Archive className="w-7 h-7 text-slate-300" />
-              </div>
-              <p className="text-sm font-medium text-slate-500">Select a message to view</p>
-              <p className="text-xs text-muted-foreground mt-1">Choose a conversation from the left panel</p>
+              {isLoading ? (
+                <>
+                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4 animate-pulse">
+                    <Archive className="w-7 h-7 text-slate-300" />
+                  </div>
+                  <p className="text-sm font-medium text-slate-500 animate-pulse">Loading message details...</p>
+                </>
+              ) : (
+                <>
+                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                    <Archive className="w-7 h-7 text-slate-300" />
+                  </div>
+                  <p className="text-sm font-medium text-slate-500">Select a message to view</p>
+                  <p className="text-xs text-muted-foreground mt-1">Choose a conversation from the left panel</p>
+                </>
+              )}
             </div>
           </div>
         )}

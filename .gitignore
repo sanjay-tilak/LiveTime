@@ -22,3 +22,8 @@ logs
 .pnpm-store/
 .cache/
 turbo/
+
+# Python backend
+backend/venv/
+__pycache__/
+*.pyc
